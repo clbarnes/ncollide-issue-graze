@@ -1,0 +1,11 @@
+[package]
+name = "ncollide-issue-graze"
+version = "0.1.0"
+authors = ["Chris Barnes <barnesc@janelia.hhmi.org>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ncollide3d = "0.23.0"
+stl_io = "0.4.2"
