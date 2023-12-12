@@ -1,17 +1,22 @@
 use std::fs::OpenOptions;
 use std::path::PathBuf;
 
-use ncollide3d::math::{Isometry, Point, Vector};
-use ncollide3d::nalgebra::Point3;
-use ncollide3d::query::{Ray, RayCast};
-use ncollide3d::shape::TriMesh;
+// use ncollide3d::math::{Isometry, Point, Vector};
+// use ncollide3d::nalgebra::Point3;
+// use ncollide3d::query::{Ray, RayCast};
+// use ncollide3d::shape::TriMesh;
+
+use parry3d::math::{Point, Vector};
+use parry3d::query::{Ray, RayCast};
+use parry3d::shape::TriMesh;
+
 use stl_io::read_stl;
 
 type Precision = f32;
 
 struct NamedMesh {
     pub name: &'static str,
-    pub mesh: TriMesh<Precision>,
+    pub mesh: TriMesh,
 }
 
 impl NamedMesh {
@@ -39,9 +44,14 @@ impl NamedMesh {
             io_obj
                 .faces
                 .iter()
-                .map(|t| Point3::new(t.vertices[0], t.vertices[1], t.vertices[2]))
+                .map(|t| {
+                    [
+                        t.vertices[0] as u32,
+                        t.vertices[1] as u32,
+                        t.vertices[2] as u32,
+                    ]
+                })
                 .collect(),
-            None,
         );
         Self { name, mesh }
     }
@@ -56,8 +66,7 @@ fn print_result(named_mesh: &NamedMesh, point: &[Precision; 3], vector: &[Precis
         point, vector, named_mesh.name
     );
 
-    match named_mesh.mesh.toi_and_normal_with_ray(
-        &Isometry::identity(),
+    match named_mesh.mesh.cast_local_ray_and_get_normal(
         &Ray::new(p, v),
         Precision::INFINITY,
         false, // unused
@@ -74,11 +83,14 @@ fn print_result(named_mesh: &NamedMesh, point: &[Precision; 3], vector: &[Precis
 }
 
 fn main() {
-    let sez_right = NamedMesh::new("SEZ_right.stl");
-    println!("Motivating example");
-    print_result(&sez_right, &[28355.6, 51807.3, 47050.0], &[1.0, 0.0, 0.0]);
+    // let sez_right = NamedMesh::new("SEZ_right.stl");
+    // println!("Motivating example");
+    // print_result(&sez_right, &[28355.6, 51807.3, 47050.0], &[1.0, 0.0, 0.0]);
 
     let unit_cube = NamedMesh::new("unit_cube.stl");
+
+    println!("\nAll of these rays originate outside of the unit cube, so none should intersect with a backface.\n");
+
     println!("\nTransverse ray-face intersection");
     print_result(&unit_cube, &[-1.0, 0.0, 0.0], &[1.0, 0.0, 0.0]);
     println!("\nRay-edge touch");
